@@ -111,6 +111,30 @@ unfolding dfs_def apply (vcg; clarsimp simp add: fin_digraph.axioms(1) wf_digrap
   using finite_image_set fin_digraph.finite_arcs finite_subset apply fastforce
   done
 
+definition dfs' where
+"dfs' G \<equiv>
+  \<acute>discovered :== {};;
+  \<acute>stack :== [\<acute>root];;
+  WHILE \<acute>stack \<noteq> []
+  INV \<lbrace> \<acute>G = G
+        \<and> fin_digraph \<acute>G
+        \<and> set \<acute>stack \<subseteq> verts \<acute>G
+        \<and> {v. reachable \<acute>G \<acute>root v} = \<acute>discovered \<union> (\<Union>v \<in> set \<acute>stack. {w. reachable \<acute>G v w})
+        \<and> (\<forall>v \<in> \<acute>discovered. \<forall>w. dominates \<acute>G v w \<longrightarrow> w \<in> \<acute>discovered \<union> set \<acute>stack)
+      \<rbrace>
+  VAR (card ({v. reachable \<acute>G \<acute>root v} - \<acute>discovered) <*MLEX*> (MEASURE length \<acute>stack))
+  DO
+    \<acute>v :== hd \<acute>stack;;
+    \<acute>stack :== tl \<acute>stack;;
+    IF \<acute>v \<notin> \<acute>discovered THEN
+      \<acute>discovered :== insert \<acute>v \<acute>discovered;;
+      Spec {(s, s'). \<exists>ws. s' = s\<lparr>locals := locals s<stack_' := ws @ (locals s\<cdot>stack_')>\<rparr>}
+    FI
+  OD
+"
+
+lemma dfs'_total: "\<Gamma> \<turnstile>\<^sub>t \<lbrace> \<acute>G = G \<and> \<acute>root \<in> verts \<acute>G \<and> fin_digraph \<acute>G \<rbrace> dfs' G \<lbrace> \<acute>G = G \<and> \<acute>discovered = {v. reachable \<acute>G \<acute>root v} \<rbrace>"
+unfolding dfs'_def apply vcg
 end
 
 end
